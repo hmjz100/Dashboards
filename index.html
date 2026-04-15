@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<script>
+	crypto.randomUUID = crypto.randomUUID?.bind(crypto) || (() => {
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+			const r = crypto.getRandomValues(new Uint8Array(1))[0] & 15;
+			const v = c === 'x' ? r : (r & 0x3 | 0x8);
+			return v.toString(16);
+		});
+	});
+
+	function UUID(text) {
+		if (text == null) return crypto.randomUUID();
+		let hash = Array.from(new TextEncoder().encode(String(text))).reduce((h, c) => Math.imul(h ^ c, 0x5bd1e995) >>> 0, 0x811c9dc5);
+		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+			const r = (hash & 0xf);
+			hash = hash >> 4;
+			const v = c === 'x' ? r : (r & 0x3 | 0x8);
+			return v.toString(16);
+		});
+	};
+
+	const DASHBOARDS = [
+		{
+			name: "Yacd Meta",
+			desc: "由 MetaCubeX 继续维护的 Yet Another Clash Dashboard，使用了 AI 改进 UI",
+			icon: "logo.png",
+			folder: "dash/MetaCubeX/Yet-Another-Clash-Dashboard_0.3.8",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => ({ baseURL: s.url, secret: s.secret, addedAt: Date.now() }));
+					var selected = servers.findIndex(s => s.default);
+					var config = JSON.parse(localStorage.getItem('yacd.metacubex.one') || '{}');
+					config.selectedClashAPIConfigIndex = selected >= 0 ? selected : 0;
+					config.clashAPIConfigs = list;
+					config.theme = "auto";
+					localStorage.setItem('yacd.metacubex.one', JSON.stringify(config));
+				},
+				read: () => {
+					var config = JSON.parse(localStorage.getItem('yacd.metacubex.one') || '{}');
+					var list = config.clashAPIConfigs || [];
+					let selected = config.selectedClashAPIConfigIndex || 0;
+					if (typeof selected !== "number" || selected > (list.length - 1)) {
+						selected = 0;
+						config.selectedClashAPIConfigIndex = 0;
+						localStorage.setItem('yacd.metacubex.one', JSON.stringify(config));
+					}
+					return list.map((item, index) => ({
+						id: UUID(`${item.baseURL}${item.secret}`),
+						name: item.baseURL,
+						url: item.baseURL,
+						secret: item.secret,
+						default: index === selected
+					}))
+				}
+			}
+		},
+		{
+			name: "Yacd Meta Classic",
+			desc: "由 MetaCubeX 继续维护的 Yet Another Clash Dashboard (0.3.7)，推荐在低配置设备上使用",
+			icon: "logo.png",
+			folder: "dash/MetaCubeX/Yet-Another-Clash-Dashboard_0.3.7",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => ({ baseURL: s.url, secret: s.secret, addedAt: Date.now() }));
+					var selected = servers.findIndex(s => s.default);
+					var config = JSON.parse(localStorage.getItem('yacd.metacubex.one') || '{}');
+					config.selectedClashAPIConfigIndex = selected >= 0 ? selected : 0;
+					config.clashAPIConfigs = list;
+					config.theme = "auto";
+					localStorage.setItem('yacd.metacubex.one', JSON.stringify(config));
+				},
+				read: () => {
+					var config = JSON.parse(localStorage.getItem('yacd.metacubex.one') || '{}');
+					var list = config.clashAPIConfigs || [];
+					let selected = config.selectedClashAPIConfigIndex || 0;
+					if (typeof selected !== "number" || selected > (list.length - 1)) {
+						selected = 0;
+						config.selectedClashAPIConfigIndex = 0;
+						localStorage.setItem('yacd.metacubex.one', JSON.stringify(config));
+					}
+					return list.map((item, index) => ({
+						id: UUID(`${item.baseURL}${item.secret}`),
+						name: item.baseURL,
+						url: item.baseURL,
+						secret: item.secret,
+						default: index === selected
+					}))
+				}
+			}
+		},
+		{
+			name: "MetaCubeXD",
+			desc: "MetaCubeX 的 Mihomo Dashboard，不建议在低配置设备使用",
+			icon: "pwa-192x192.png",
+			folder: "dash/MetaCubeX/Dashboard",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => ({ id: s.id, url: s.url, secret: s.secret }));
+					var selected = servers.find(s => s.default) || servers[0];
+					localStorage.setItem('endpointList', JSON.stringify(list));
+					if (selected) localStorage.setItem('selectedEndpoint', selected.id);
+				},
+				read: () => {
+					var list = JSON.parse(localStorage.getItem('endpointList') || '[]');
+					let selected = localStorage.getItem('selectedEndpoint');
+					if (!selected && list.length > 0) {
+						selected = list[0].id;
+						localStorage.setItem('selectedEndpoint', selected);
+					}
+					return list.map(item => ({
+						id: item.id,
+						name: item.url.split('//')[1] || item.url,
+						url: item.url,
+						secret: item.secret,
+						default: item.id === selected,
+					}));
+				}
+			}
+		},
+		{
+			name: "Yacd Meta Koge",
+			desc: "由 KogekiPlay 美化的 Yet Another Clash Dashboard Meta",
+			icon: "logo.png",
+			folder: "dash/kogekiplay/Yet-Another-Clash-Dashboard",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => ({ baseURL: s.url, secret: s.secret, addedAt: Date.now() }));
+					var selected = servers.findIndex(s => s.default);
+					var config = JSON.parse(localStorage.getItem('yacd.kogeki.cf') || '{}');
+					config.selectedClashAPIConfigIndex = selected >= 0 ? selected : 0;
+					config.clashAPIConfigs = list;
+					config.theme = "auto";
+					localStorage.setItem('yacd.kogeki.cf', JSON.stringify(config));
+				},
+				read: () => {
+					var config = JSON.parse(localStorage.getItem('yacd.kogeki.cf') || '{}');
+					var list = config.clashAPIConfigs || [];
+					let selected = config.selectedClashAPIConfigIndex || 0;
+					if (typeof selected !== "number" || selected > (list.length - 1)) {
+						selected = 0;
+						config.selectedClashAPIConfigIndex = 0;
+						localStorage.setItem('yacd.kogeki.cf', JSON.stringify(config));
+					}
+					return list.map((item, index) => ({
+						id: UUID(`${item.baseURL}${item.secret}`),
+						name: item.baseURL,
+						url: item.baseURL,
+						secret: item.secret,
+						default: index === selected
+					}))
+				}
+			}
+		},
+		{
+			name: "Yacd",
+			desc: "Yet Another Clash Dashboard 的最后一个版本",
+			icon: "yacd-128.png",
+			folder: "dash/haishanh/Yet-Another-Clash-Dashboard",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => ({ baseURL: s.url, secret: s.secret, addedAt: Date.now() }));
+					var selected = servers.findIndex(s => s.default);
+					var config = JSON.parse(localStorage.getItem('yacd.haishan.me') || '{}');
+					config.selectedClashAPIConfigIndex = selected >= 0 ? selected : 0;
+					config.clashAPIConfigs = list;
+					config.theme = "auto";
+					localStorage.setItem('yacd.haishan.me', JSON.stringify(config));
+				},
+				read: () => {
+					var config = JSON.parse(localStorage.getItem('yacd.haishan.me') || '{}');
+					var list = config.clashAPIConfigs || [];
+					let selected = config.selectedClashAPIConfigIndex || 0;
+					if (typeof selected !== "number" || selected > (list.length - 1)) {
+						selected = 0;
+						config.selectedClashAPIConfigIndex = 0;
+						localStorage.setItem('yacd.haishan.me', JSON.stringify(config));
+					}
+					return list.map((item, index) => ({
+						id: UUID(`${item.baseURL}${item.secret}`),
+						name: item.baseURL,
+						url: item.baseURL,
+						secret: item.secret,
+						default: index === selected
+					}))
+				}
+			}
+		}
+	];
+	const MAIN = "dashboards.hmjz100";
+</script>
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Dashboards</title>
+	<style>
+		:root {
+			--primary: #574AB8;
+			--background: #f5f5f7;
+			--card: #ffffff;
+			--text: #1d1d1f;
+			--border: #d2d2d7;
+			--danger: #ff3b30;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			:root {
+				--background: #242424;
+				--card: #1c1c1e;
+				--text: #f5f5f7;
+				--border: #38383a;
+			}
+		}
+
+		body {
+			font-family: -apple-system, sans-serif;
+			background-color: var(--background);
+			color: var(--text);
+			margin: 0;
+			padding: 20px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+		}
+
+		.container {
+			width: 100%;
+			max-width: 900px;
+		}
+
+		.container #dashboards {
+			display: grid;
+			gap: 20px;
+		}
+
+		#dashboards .card {
+			background: var(--card);
+			border: 1px solid var(--border);
+			border-radius: 16px;
+			padding: 20px;
+			cursor: pointer;
+			transition: all 0.2s ease;
+			display: flex;
+			align-items: center;
+			gap: 15px;
+			color: var(--text) !important;
+			text-decoration: none !important;
+		}
+
+		#dashboards .card:hover {
+			border-color: var(--primary);
+		}
+
+		#dashboards .card img {
+			width: 48px;
+			height: 48px;
+			border-radius: 10px;
+			object-fit: contain;
+		}
+
+		#dashboards .card .info h3 {
+			margin: 0;
+			font-size: 1.1rem;
+		}
+
+		#dashboards .card .info p {
+			margin: 5px 0 0;
+			font-size: 0.85rem;
+			opacity: 0.6;
+			word-break: normal;
+			overflow-wrap: break-word;
+		}
+
+		#settings {
+			position: fixed;
+			bottom: 20px;
+			right: 20px;
+			width: 50px;
+			height: 50px;
+			border-radius: 50%;
+			background-color: var(--primary);
+			color: white;
+			border: none;
+			font-size: 24px;
+			cursor: pointer;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 100;
+		}
+
+		#settings svg {
+			width: 24px;
+			height: 24px;
+			fill: currentColor;
+		}
+
+		/* Modal Styles */
+		.modal-overlay {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: rgba(0, 0, 0, 0.5);
+			z-index: 2000;
+			justify-content: center;
+			align-items: center;
+			backdrop-filter: blur(5px);
+		}
+
+		.modal {
+			background: var(--card);
+			width: 90%;
+			max-width: 300px;
+			max-height: 80vh;
+			border-radius: 16px;
+			padding: 20px;
+			overflow-y: auto;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+			border: 1px solid var(--border);
+		}
+
+		.modal-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+
+		.modal-header h2 {
+			margin: 0;
+		}
+
+		.close-modal {
+			background: none;
+			border: none;
+			color: var(--text);
+			font-size: 24px;
+			cursor: pointer;
+		}
+
+		.server-item {
+			background: var(--background);
+			border: 1px solid var(--border);
+			padding: 15px;
+			border-radius: 12px;
+			margin-bottom: 15px;
+			display: grid;
+			gap: 10px;
+		}
+
+		.server-item input[type="text"] {
+			width: 100%;
+			padding: 10px;
+			border: 1px solid var(--border);
+			border-radius: 8px;
+			background: var(--card);
+			color: var(--text);
+			box-sizing: border-box;
+		}
+
+		.server-actions {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-top: 5px;
+		}
+
+		.btn {
+			padding: 8px 16px;
+			border-radius: 8px;
+			border: none;
+			cursor: pointer;
+			font-weight: bold;
+		}
+
+		.btn-primary {
+			background: var(--primary);
+			color: white;
+		}
+
+		.btn-danger {
+			background: var(--danger);
+			color: white;
+		}
+
+		/* Iframe & Floating Close Button */
+		.iframe-wrapper {
+			display: none;
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100vw;
+			height: 100vh;
+			z-index: 1000;
+			background: var(--background);
+		}
+
+		.iframe-wrapper iframe {
+			width: 100%;
+			height: 100%;
+			border: none;
+		}
+
+		.drag-close {
+			position: fixed;
+			right: 20px;
+			top: 50%;
+			width: 48px;
+			height: 48px;
+			background: rgba(255, 59, 48, 0.9);
+			color: white;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+			cursor: grab;
+			user-select: none;
+			touch-action: none;
+			z-index: 1001;
+			transition: transform 0.1s;
+		}
+
+		.drag-close:active {
+			cursor: grabbing;
+			transform: scale(0.95);
+		}
+
+		.drag-close svg {
+			width: 24px;
+			height: 24px;
+			fill: currentColor;
+		}
+	</style>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+	<svg aria-hidden="true" style="position: absolute; width: 0px; height: 0px; overflow: hidden;">
+		<symbol id="icon-fa-gear" viewBox="0 0 512 512">
+			<path d="M495.9 166.6c3.2 8.7 .5 18.4-6.4 24.6l-43.3 39.4c1.1 8.3 1.7 16.8 1.7 25.4s-.6 17.1-1.7 25.4l43.3 39.4c6.9 6.2 9.6 15.9 6.4 24.6c-4.4 11.9-9.7 23.3-15.8 34.3l-4.7 8.1c-6.6 11-14 21.4-22.1 31.2c-5.9 7.2-15.7 9.6-24.5 6.8l-55.7-17.7c-13.4 10.3-28.2 18.9-44 25.4l-12.5 57.1c-2 9.1-9 16.3-18.2 17.8c-13.8 2.3-28 3.5-42.5 3.5s-28.7-1.2-42.5-3.5c-9.2-1.5-16.2-8.7-18.2-17.8l-12.5-57.1c-15.8-6.5-30.6-15.1-44-25.4L83.1 425.9c-8.8 2.8-18.6 .3-24.5-6.8c-8.1-9.8-15.5-20.2-22.1-31.2l-4.7-8.1c-6.1-11-11.4-22.4-15.8-34.3c-3.2-8.7-.5-18.4 6.4-24.6l43.3-39.4C64.6 273.1 64 264.6 64 256s.6-17.1 1.7-25.4L22.4 191.2c-6.9-6.2-9.6-15.9-6.4-24.6c4.4-11.9 9.7-23.3 15.8-34.3l4.7-8.1c6.6-11 14-21.4 22.1-31.2c5.9-7.2 15.7-9.6 24.5-6.8l55.7 17.7c13.4-10.3 28.2-18.9 44-25.4l12.5-57.1c2-9.1 9-16.3 18.2-17.8C227.3 1.2 241.5 0 256 0s28.7 1.2 42.5 3.5c9.2 1.5 16.2 8.7 18.2 17.8l12.5 57.1c15.8 6.5 30.6 15.1 44 25.4l55.7-17.7c8.8-2.8 18.6-.3 24.5 6.8c8.1 9.8 15.5 20.2 22.1 31.2l4.7 8.1c6.1 11 11.4 22.4 15.8 34.3zM256 336a80 80 0 1 0 0-160 80 80 0 1 0 0 160z" />
+		</symbol>
+		<symbol id="icon-fa-x-mark" viewBox="0 0 384 512">
+			<path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
+		</symbol>
+	</svg>
+
+	<div class="container">
+		<h1>Dashboards</h1>
+		<div id="dashboards"></div>
+	</div>
+
+	<button id="settings" onclick="ui.openSettings()">
+		<svg>
+			<use href="#icon-fa-gear"></use>
+		</svg>
+	</button>
+
+	<div class="modal-overlay" id="settings-overlay">
+		<div class="modal">
+			<div class="modal-header">
+				<h2>服务器设置</h2>
+				<button class="close-modal" onclick="ui.closeSettings()">
+					<svg style="width:24px;height:24px;fill:currentColor;">
+						<use href="#icon-fa-x-mark"></use>
+					</svg>
+				</button>
+			</div>
+			<div id="server-list"></div>
+			<button class="btn btn-primary" onclick="ui.addServer()" style="width: 100%; margin-top: 10px;">添加服务器</button>
+			<button class="btn btn-primary" onclick="ui.saveSettings()" style="width: 100%; margin-top: 20px; background: #28a745;">保存并同步</button>
+			<button class="btn btn-danger" onclick="ui.deleteAll()" style="width: 100%; margin-top: 10px; background: #6c757d;">删除全部数据</button>
+		</div>
+	</div>
+
+	<div class="iframe-wrapper" id="iframe-wrapper">
+		<iframe id="dash-iframe" src=""></iframe>
+		<div class="drag-close" id="drag-close-btn">
+			<svg>
+				<use href="#icon-fa-x-mark"></use>
+			</svg>
+		</div>
+	</div>
+
+	<script>
+		let state = {
+			servers: [],
+			isParasitism: false
+		};
+
+		let base = {
+			async init() {
+				var config = localStorage.getItem(MAIN);
+				let hasLocalData = false;
+
+				// 检查各面板是否有数据
+				for (let dash of DASHBOARDS) {
+					let data = dash.config.read();
+					if (data && data.length > 0) {
+						hasLocalData = true;
+						break;
+					}
+				}
+
+				if (config) {
+					state = JSON.parse(config);
+					if (!hasLocalData) {
+						this.syncToAllDashboards();
+					}
+				} else if (hasLocalData) {
+					this.syncFromDashboards();
+				} else {
+					// --- 自动检测逻辑增强 ---
+					let res = await this.detect();
+					const currentUrl = `${location.protocol}//${location.host}`;
+
+					if (res === "succ") {
+						// 情况 1: 成功且无密码，直接创建默认配置
+						state.isParasitism = true;
+						state.servers = [{
+							id: UUID(),
+							name: location.host,
+							url: currentUrl,
+							secret: "",
+							default: true
+						}];
+						this.saveMain();
+						this.syncToAllDashboards();
+						alert("检测到 Clash 服务，已自动配置连接。");
+					} else if (res === "auth") {
+						// 情况 2: 存在服务但需要密码，弹窗并预填 URL
+						state.isParasitism = true;
+						ui.openSettings(currentUrl);
+					}
+				}
+				this.saveMain();
+				this.render();
+			},
+
+			saveMain() {
+				localStorage.setItem(MAIN, JSON.stringify(state));
+			},
+
+			syncToAllDashboards() {
+				DASHBOARDS.forEach(dash => {
+					try { dash.config.save(state.servers); } catch (e) { console.warn('Save failed for', dash.name, e); }
+				});
+			},
+
+			syncFromDashboards() {
+				// 优先取有数据的
+				for (let dash of DASHBOARDS) {
+					let data = dash.config.read();
+					if (data && data.length > 0) {
+						state.servers = data;
+						this.saveMain();
+						this.syncToAllDashboards();
+						break;
+					}
+				}
+			},
+
+			render() {
+				$("#dashboards").html(DASHBOARDS.map((item, i) => {
+					let logo = new URL(`./${item.folder}/${item.icon}`, location.href).href;
+					return `<div class="card" onclick="iframeController.open(${i})">
+						<img src="${logo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/124/124037.png'">
+						<div class="info">
+							<h3>${item.name}</h3>
+							<p>${item.desc}</p>
+						</div>
+					</div>`
+				}).join(""));
+			},
+
+			async detect(host = "", secret = "") {
+				if (!host) host = `${location.protocol}//${location.host}`;
+				try {
+					const res = await fetch(`${host}/version`);
+					if (!res.ok) {
+						if (res.status === 401) return "auth";
+						return "fail";
+					}
+					const data = await res.json();
+					if (data && typeof data === 'object') {
+						if (data.message === "Unauthorized") return "auth";
+						if (data.meta === true && typeof data.version === 'string') return "succ";
+					}
+					return "fail";
+				} catch (e) {
+					return "fail";
+				}
+			}
+		};
+
+		let ui = {
+			// 修改：支持传入预填 URL
+			openSettings(prefillUrl = "") {
+				if (state.servers.length === 0) {
+					state.servers.push({
+						id: UUID(),
+						name: "",
+						url: prefillUrl || "http://127.0.0.1:9090",
+						secret: "",
+						default: true
+					});
+				} else if (prefillUrl) {
+					// 如果已有服务器列表但需要引导用户填当前地址（针对 auth 情况）
+					// 可以选择直接修改第一个，或者判断是否已存在
+					if (!state.servers.find(s => s.url === prefillUrl)) {
+						state.servers[0].url = prefillUrl;
+					}
+				}
+				this.renderServerList();
+				$("#settings-overlay").css("display", "flex");
+			},
+			closeSettings() {
+				$("#settings-overlay").hide();
+			},
+			renderServerList() {
+				if (state.servers.length === 0) {
+					state.servers.push({ id: UUID(), name: "", url: "http://127.0.0.1:9090", secret: "", default: true });
+				}
+
+				let html = state.servers.map((s, i) => `
+					<div class="server-item" data-index="${i}">
+						<input type="text" class="s-url" placeholder="URL (例如: http://127.0.0.1:9090)" value="${s.url}">
+						<input type="text" class="s-secret" placeholder="Secret" value="${s.secret}">
+						<div class="server-actions">
+							<label><input type="radio" name="defaultServer" value="${i}" ${s.default ? 'checked' : ''}> 默认</label>
+							<button class="btn btn-danger" onclick="ui.removeServer(${i})">删除</button>
+						</div>
+					</div>
+				`).join("");
+				$("#server-list").html(html);
+			},
+			addServer() {
+				state.servers.forEach(s => s.default = false);
+				state.servers.push({ id: UUID(), name: "", url: "", secret: "", default: true });
+				this.renderServerList();
+			},
+			removeServer(index) {
+				state.servers.splice(index, 1);
+				if (state.servers.length > 0 && !state.servers.find(s => s.default)) {
+					state.servers[0].default = true;
+				}
+				this.renderServerList();
+			},
+			saveSettings() {
+				let newServers = [];
+				let defaultIndex = parseInt($("input[name='defaultServer']:checked").val()) || 0;
+
+				$(".server-item").each(function (i) {
+					let url = $(this).find(".s-url").val();
+					let secret = $(this).find(".s-secret").val();
+					if (url) {
+						let existing = state.servers[i] || {};
+						newServers.push({
+							id: existing.id || UUID(),
+							name: url.split('//')[1] || url,
+							url: url,
+							secret: secret,
+							default: i === defaultIndex
+						});
+					}
+				});
+
+				state.servers = newServers;
+				base.saveMain();
+				base.syncToAllDashboards();
+				this.closeSettings();
+				alert("设置已保存并同步至所有面板");
+			},
+			deleteAll() {
+				if (confirm("确定要删除所有配置吗？\n这将清除主配置（MAIN）以及所有面板的本地存储，操作不可撤销。")) {
+					// 1. 删除 localStorage 中的 MAIN
+					localStorage.removeItem(MAIN);
+
+					// 2. 将 state 中的服务器清空
+					state.servers = [];
+
+					// 3. 给各 DASHBOARD 同步一个空的服务器列表
+					DASHBOARDS.forEach(dash => {
+						try {
+							dash.config.save([]);
+						} catch (e) {
+							console.warn('Clear failed for', dash.name, e);
+						}
+					});
+
+					// 4. 提示并重载页面，触发 base.init 的重新检测逻辑
+					alert("所有配置已清除。");
+					location.reload();
+				}
+			},
+		};
+
+		let iframeController = {
+			pollInterval: null,
+			currentIndex: -1,
+			otitle: document.title,
+
+			open(index) {
+				this.currentIndex = index;
+				let dash = DASHBOARDS[index];
+
+				// 1. 打开前先同步 MAIN 的数据到目标面板
+				dash.config.save(state.servers);
+
+				document.title = `${this.otitle} - ${dash.name}`;
+
+				// 2. 加载 iframe
+				let url = new URL(`./${dash.folder}/`, location.href).href;
+				$("#dash-iframe").attr("src", url);
+				$("#iframe-wrapper").show();
+
+				// 3. 启动监听
+				let lastStateStr = JSON.stringify(dash.config.read());
+				this.pollInterval = setInterval(() => {
+					let currentState = dash.config.read();
+					let currentStateStr = JSON.stringify(currentState);
+
+					// 如果面板内数据发生变化
+					if (currentStateStr !== lastStateStr) {
+						state.servers = currentState;
+						lastStateStr = currentStateStr;
+						base.saveMain();
+						base.syncToAllDashboards();
+					}
+				}, 1000);
+			},
+
+			close() {
+				clearInterval(this.pollInterval);
+				document.title = this.otitle;
+				$("#iframe-wrapper").hide();
+				$("#dash-iframe").attr("src", "");
+				this.currentIndex = -1;
+			}
+		};
+
+		// 拖拽悬浮按钮逻辑
+		(function initDrag() {
+			const btn = document.getElementById('drag-close-btn');
+			const iframeWrapper = document.getElementById('iframe-wrapper');
+			let isDragging = false;
+			let startX, startY, initialX, initialY;
+
+			// 【新增】：确保按钮始终在屏幕可视区域内的逻辑
+			const keepInBounds = (x, y) => {
+				// 获取当前窗口的实际宽高和按钮自身的宽高
+				const maxX = window.innerWidth - btn.offsetWidth;
+				const maxY = window.innerHeight - btn.offsetHeight;
+
+				// 如果传入了具体坐标（拖拽时），就使用具体坐标限制
+				// 如果没传具体坐标（调整窗口大小时），就获取当前坐标进行限制
+				let targetX = x !== undefined ? x : btn.getBoundingClientRect().left;
+				let targetY = y !== undefined ? y : btn.getBoundingClientRect().top;
+
+				// 核心边界限制算法
+				targetX = Math.max(0, Math.min(maxX, targetX));
+				targetY = Math.max(0, Math.min(maxY, targetY));
+
+				btn.style.left = targetX + 'px';
+				btn.style.top = targetY + 'px';
+				btn.style.right = 'auto'; // 一旦开始计算位置，就清除掉 CSS 默认的 right 定位
+			};
+
+			// 【新增】：监听窗口大小变化事件
+			window.addEventListener('resize', () => {
+				// 只有当 iframe 处于显示状态时，再去计算位置，节省性能
+				if ($("#iframe-wrapper").is(":visible")) {
+					keepInBounds();
+				}
+			});
+
+			const startDrag = (e) => {
+				isDragging = false;
+				let event = e.type.includes('mouse') ? e : e.touches[0];
+				startX = event.clientX;
+				startY = event.clientY;
+
+				const rect = btn.getBoundingClientRect();
+				initialX = rect.left;
+				initialY = rect.top;
+
+				if (e.cancelable) e.preventDefault();
+
+				iframeWrapper.style.pointerEvents = 'none';
+
+				document.addEventListener('mousemove', doDrag, { passive: false });
+				document.addEventListener('touchmove', doDrag, { passive: false });
+				document.addEventListener('mouseup', endDrag);
+				document.addEventListener('touchend', endDrag);
+			};
+
+			const doDrag = (e) => {
+				let event = e.type.includes('mouse') ? e : e.touches[0];
+				let dx = event.clientX - startX;
+				let dy = event.clientY - startY;
+
+				if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+					isDragging = true;
+				}
+
+				if (isDragging) {
+					e.preventDefault();
+					let newX = initialX + dx;
+					let newY = initialY + dy;
+
+					// 使用统一的边界计算函数
+					keepInBounds(newX, newY);
+				}
+			};
+
+			const endDrag = (e) => {
+				document.removeEventListener('mousemove', doDrag);
+				document.removeEventListener('touchmove', doDrag);
+				document.removeEventListener('mouseup', endDrag);
+				document.removeEventListener('touchend', endDrag);
+
+				iframeWrapper.style.pointerEvents = 'auto';
+
+				if (!isDragging) {
+					iframeController.close();
+
+					// 关闭 iframe 后，恢复按钮的默认 CSS 定位（靠右居中），以便下次打开时位置正常
+					btn.style.left = 'auto';
+					btn.style.top = '50%';
+					btn.style.right = '20px';
+				}
+			};
+
+			btn.addEventListener('mousedown', startDrag);
+			btn.addEventListener('touchstart', startDrag, { passive: false });
+		})();
+
+		$(document).ready(() => {
+			base.init();
+		});
+	</script>
+</body>
+
+</html>
