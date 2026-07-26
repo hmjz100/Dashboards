@@ -18,53 +18,67 @@ jobs:
 
       - name: 同步 Yet Another Clash Dashboard Classic
         run: |
-          rm -rf dash/hmjz100/Yet-Another-Clash-Dashboard
-          git clone --single-branch -b gh-pages --depth 1 https://github.com/hmjz100/Yacd-Meta-Classic.git dash/hmjz100/Yet-Another-Clash-Dashboard
-          rm -rf dash/hmjz100/Yet-Another-Clash-Dashboard/.git
+          TARGET_DIR="dash/hmjz100/Yet-Another-Clash-Dashboard"
+          REPO_URL="https://github.com/hmjz100/Yacd-Meta-Classic.git"
+
+          rm -rf "$TARGET_DIR"
+          git clone --single-branch -b gh-pages --depth 1 "$REPO_URL" "$TARGET_DIR"
+          rm -rf "$TARGET_DIR/.git"
+
+          git add "$TARGET_DIR"
+          if ! git diff --cached --quiet -- "$TARGET_DIR"; then
+            HASH=$(git ls-remote "$REPO_URL" HEAD | awk '{print substr($1,1,7)}')
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
+            ${COMMIT_MSG:+"echo \"$COMMIT_MSG\""}
+            echo "- 同步 Yet Another Clash Dashboard Classic (${HASH})" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
 
       - name: 同步 MetaCubeX Dashboard (metacubexd)
         run: |
-          rm -rf dash/MetaCubeX/Dashboard
-          git clone --single-branch -b gh-pages --depth 1 https://github.com/MetaCubeX/metacubexd.git dash/MetaCubeX/Dashboard
-          rm -rf dash/MetaCubeX/Dashboard/.git
+          TARGET_DIR="dash/MetaCubeX/Dashboard"
+          REPO_URL="https://github.com/MetaCubeX/metacubexd.git"
+
+          rm -rf "$TARGET_DIR"
+          git clone --single-branch -b gh-pages --depth 1 "$REPO_URL" "$TARGET_DIR"
+          rm -rf "$TARGET_DIR/.git"
+
+          git add "$TARGET_DIR"
+          if ! git diff --cached --quiet -- "$TARGET_DIR"; then
+            HASH=$(git ls-remote "$REPO_URL" HEAD | awk '{print substr($1,1,7)}')
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
+            ${COMMIT_MSG:+"echo \"$COMMIT_MSG\""}
+            echo "- 同步 MetaCubeX Dashboard (metacubexd) (${HASH})" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
 
       - name: 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta)
         run: |
-          rm -rf dash/MetaCubeX/Yet-Another-Clash-Dashboard
-          git clone --single-branch -b gh-pages --depth 1 https://github.com/MetaCubeX/yacd-meta.git dash/MetaCubeX/Yet-Another-Clash-Dashboard
-          rm -rf dash/MetaCubeX/Yet-Another-Clash-Dashboard/.git
+          TARGET_DIR="dash/MetaCubeX/Yet-Another-Clash-Dashboard"
+          REPO_URL="https://github.com/MetaCubeX/yacd-meta.git"
 
-      - name: 检查变动
-        id: diff
-        run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "未检测到变动。"
-          else
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "检测到变动："
-            git diff --cached --stat
+          rm -rf "$TARGET_DIR"
+          git clone --single-branch -b gh-pages --depth 1 "$REPO_URL" "$TARGET_DIR"
+          rm -rf "$TARGET_DIR/.git"
 
-            MSG=""
-            if git diff --cached --name-only | grep -q "^dash/hmjz100/Yet-Another-Clash-Dashboard/"; then
-              MSG="${MSG}- 同步 Yet Another Clash Dashboard Classic"$'\n'
-            fi
-            if git diff --cached --name-only | grep -q "^dash/MetaCubeX/Dashboard/"; then
-              MSG="${MSG}- 同步 MetaCubeX Dashboard (metacubexd)"$'\n'
-            fi
-            if git diff --cached --name-only | grep -q "^dash/MetaCubeX/Yet-Another-Clash-Dashboard/"; then
-              MSG="${MSG}- 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta)"$'\n'
-            fi
-            echo "message<<EOF" >> $GITHUB_OUTPUT
-            echo -e "$MSG" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+          git add "$TARGET_DIR"
+          if ! git diff --cached --quiet -- "$TARGET_DIR"; then
+            HASH=$(git ls-remote "$REPO_URL" HEAD | awk '{print substr($1,1,7)}')
+            echo "HAS_CHANGES=true" >> $GITHUB_ENV
+            echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
+            ${COMMIT_MSG:+"echo \"$COMMIT_MSG\""}
+            echo "- 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta) (${HASH})" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
           fi
 
       - name: 提交并推送变更
-        if: steps.diff.outputs.changed == 'true'
+        if: env.HAS_CHANGES == 'true'
         run: |
+          TIMESTAMP=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "更新：同步上游面板" -m "${{ steps.diff.outputs.message }}"
+          git commit -m "更新：同步上游面板" -m "$TIMESTAMP" -m "$COMMIT_MSG"
           git push
