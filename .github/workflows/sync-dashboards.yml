@@ -1,0 +1,69 @@
+name: 同步面板
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    if: github.repository_owner == 'hmjz100'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v7
+
+      - name: 同步 Yet Another Clash Dashboard Classic
+        run: |
+          rm -rf dash/hmjz100/Yet-Another-Clash-Dashboard
+          git clone --single-branch -b gh-pages --depth 1 https://github.com/hmjz100/Yacd-Meta-Classic.git dash/hmjz100/Yet-Another-Clash-Dashboard
+          rm -rf dash/hmjz100/Yet-Another-Clash-Dashboard/.git
+
+      - name: 同步 MetaCubeX Dashboard (metacubexd)
+        run: |
+          rm -rf dash/MetaCubeX/Dashboard
+          git clone --single-branch -b gh-pages --depth 1 https://github.com/MetaCubeX/metacubexd.git dash/MetaCubeX/Dashboard
+          rm -rf dash/MetaCubeX/Dashboard/.git
+
+      - name: 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta)
+        run: |
+          rm -rf dash/MetaCubeX/Yet-Another-Clash-Dashboard
+          git clone --single-branch -b gh-pages --depth 1 https://github.com/MetaCubeX/yacd-meta.git dash/MetaCubeX/Yet-Another-Clash-Dashboard
+          rm -rf dash/MetaCubeX/Yet-Another-Clash-Dashboard/.git
+
+      - name: 检查变动
+        id: diff
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "未检测到变动。"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "检测到变动："
+            git diff --cached --stat
+
+            MSG=""
+            if git diff --cached --name-only | grep -q "^dash/hmjz100/Yet-Another-Clash-Dashboard/"; then
+              MSG="${MSG}- 同步 Yet Another Clash Dashboard Classic"$'\n'
+            fi
+            if git diff --cached --name-only | grep -q "^dash/MetaCubeX/Dashboard/"; then
+              MSG="${MSG}- 同步 MetaCubeX Dashboard (metacubexd)"$'\n'
+            fi
+            if git diff --cached --name-only | grep -q "^dash/MetaCubeX/Yet-Another-Clash-Dashboard/"; then
+              MSG="${MSG}- 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta)"$'\n'
+            fi
+            echo "message<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$MSG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 提交并推送变更
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "更新：同步上游面板" -m "${{ steps.diff.outputs.message }}"
+          git push
