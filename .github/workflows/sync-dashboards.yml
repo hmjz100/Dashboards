@@ -14,7 +14,7 @@ jobs:
       contents: write
     steps:
       - name: 检出仓库
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: 同步 Yet Another Clash Dashboard Classic
         run: |
@@ -28,11 +28,17 @@ jobs:
           git add "$TARGET_DIR"
           if ! git diff --cached --quiet -- "$TARGET_DIR"; then
             HASH=$(git ls-remote "$REPO_URL" HEAD | awk '{print substr($1,1,7)}')
-            echo "HAS_CHANGES=true" >> $GITHUB_ENV
-            echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
-            ${COMMIT_MSG:+"echo \"$COMMIT_MSG\""}
-            echo "- 同步 Yet Another Clash Dashboard Classic (${HASH})" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_CHANGES=true" >> "$GITHUB_ENV"
+
+            # 如果是第一次写入 COMMIT_MSG，初始化它
+            if [ -z "$COMMIT_MSG" ]; then
+              COMMIT_MSG="- 同步 Yet Another Clash Dashboard Classic (${HASH})"
+            else
+              COMMIT_MSG="${COMMIT_MSG}"$'\n'"- 同步 Yet Another Clash Dashboard Classic (${HASH})"
+            fi
+            echo "COMMIT_MSG<<EOF" >> "$GITHUB_ENV"
+            echo "$COMMIT_MSG" >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
           fi
 
       - name: 同步 MetaCubeX Dashboard (metacubexd)
@@ -47,11 +53,16 @@ jobs:
           git add "$TARGET_DIR"
           if ! git diff --cached --quiet -- "$TARGET_DIR"; then
             HASH=$(git ls-remote "$REPO_URL" HEAD | awk '{print substr($1,1,7)}')
-            echo "HAS_CHANGES=true" >> $GITHUB_ENV
-            echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
-            ${COMMIT_MSG:+"echo \"$COMMIT_MSG\""}
-            echo "- 同步 MetaCubeX Dashboard (metacubexd) (${HASH})" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_CHANGES=true" >> "$GITHUB_ENV"
+
+            if [ -z "$COMMIT_MSG" ]; then
+              COMMIT_MSG="- 同步 MetaCubeX Dashboard (metacubexd) (${HASH})"
+            else
+              COMMIT_MSG="${COMMIT_MSG}"$'\n'"- 同步 MetaCubeX Dashboard (metacubexd) (${HASH})"
+            fi
+            echo "COMMIT_MSG<<EOF" >> "$GITHUB_ENV"
+            echo "$COMMIT_MSG" >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
           fi
 
       - name: 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta)
@@ -66,11 +77,16 @@ jobs:
           git add "$TARGET_DIR"
           if ! git diff --cached --quiet -- "$TARGET_DIR"; then
             HASH=$(git ls-remote "$REPO_URL" HEAD | awk '{print substr($1,1,7)}')
-            echo "HAS_CHANGES=true" >> $GITHUB_ENV
-            echo "COMMIT_MSG<<EOF" >> $GITHUB_ENV
-            ${COMMIT_MSG:+"echo \"$COMMIT_MSG\""}
-            echo "- 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta) (${HASH})" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
+            echo "HAS_CHANGES=true" >> "$GITHUB_ENV"
+
+            if [ -z "$COMMIT_MSG" ]; then
+              COMMIT_MSG="- 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta) (${HASH})"
+            else
+              COMMIT_MSG="${COMMIT_MSG}"$'\n'"- 同步 MetaCubeX Yet Another Clash Dashboard (yacd-meta) (${HASH})"
+            fi
+            echo "COMMIT_MSG<<EOF" >> "$GITHUB_ENV"
+            echo "$COMMIT_MSG" >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
           fi
 
       - name: 提交并推送变更
