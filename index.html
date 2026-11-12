@@ -10,7 +10,7 @@
 	});
 
 	function UUID(text) {
-		if (text == null) return crypto.randomUUID();
+		if (text == null || text === undefined || text === false || text === "" || text === 0 || text === NaN) return crypto.randomUUID();
 		let hash = Array.from(new TextEncoder().encode(String(text))).reduce((h, c) => Math.imul(h ^ c, 0x5bd1e995) >>> 0, 0x811c9dc5);
 		return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
 			const r = (hash & 0xf);
@@ -22,8 +22,53 @@
 
 	const DASHBOARDS = [
 		{
+			name: "zashboard",
+			desc: "社区新生代面板，由 Zephyruso 开发<br/>功能齐全，界面简洁，动效合理，性能良好，适合低配置设备",
+			icon: "favicon.svg",
+			folder: "dash/Zephyruso/zashboard",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => {
+						var url = new URL(s.url);
+						return {
+							uuid: s.id || UUID(`${s.url}${s.secret}`),
+							type: "clash",
+							label: s.name || s.url,
+							protocol: url.protocol.replace(/:$/, ''),
+							host: url.hostname,
+							port: url.port,
+							secondaryPath: url.pathname.replace(/^\/+|\/+$/g, ''),
+							password: s.secret || ''
+						};
+					});
+					if (!list.length) list = [{ uuid: UUID(), label: "http://localhost:9090", protocol: "http", host: "localhost", port: "9090", secondaryPath: "", password: "" }];
+					var selected = servers.findIndex(s => s.default);
+					localStorage.setItem('setup/api-list', JSON.stringify(list));
+					localStorage.setItem('setup/active-uuid', list[selected >= 0 ? selected : 0].uuid);
+					localStorage.setItem('config/proxy-sort-type', "latencyasc");
+				},
+				read: () => {
+					var config = JSON.parse(localStorage.getItem('setup/api-list') || '[]');
+					let active = localStorage.getItem('setup/active-uuid');
+					let selected = config.findIndex(s => s.uuid == active) || 0;
+					if (typeof selected !== "number" || selected > (config.length - 1)) {
+						selected = 0;
+						active = config[0]?.uuid || "";
+						localStorage.setItem('setup/active-uuid', active);
+					}
+					return config.map((item, index) => ({
+						id: item.uuid,
+						name: item.label,
+						url: `${item.protocol}://${item.host}:${item.port}${"/" + item.secondaryPath || ""}`,
+						secret: item.password,
+						default: index === selected
+					}))
+				}
+			}
+		},
+		{
 			name: "Yacd Meta Classic",
-			desc: "由 Hmjz100 美化的 Yet Another Clash Dashboard Meta<br/>基于经典版本美化、增强，加入单节点测速等新功能，非常适合在低配置的设备上使用",
+			desc: "经典重生。由 Hmjz100 二次开发 Yet Another Clash Dashboard Meta<br/>基于使用 AI 技术改进界面前的最后一个开发版美化、增强，加入单节点测速等新功能，但仍有少量性能问题，适合在低配置的设备上使用",
 			icon: "logo.png",
 			folder: "dash/hmjz100/Yet-Another-Clash-Dashboard",
 			config: {
@@ -57,8 +102,38 @@
 			}
 		},
 		{
+			name: "MetaCubeXD",
+			desc: "Mihomo 官方团队——MetaCubeX 开发的官方 Mihomo Web UI<br/>功能齐全，但使用了 AI 技术负优化，性能问题较大，不建议在低配置设备使用",
+			icon: "pwa-192x192.png",
+			folder: "dash/MetaCubeX/Dashboard",
+			config: {
+				save: (servers) => {
+					var list = servers.map(s => ({ id: s.id, url: s.url, secret: s.secret }));
+					if (!list?.length) list = [{ id: crypto.randomUUID(), url: "http://localhost:9090", secret: "" }];
+					var selected = servers.find(s => s.default) || servers[0];
+					localStorage.setItem('endpointList', JSON.stringify(list));
+					if (selected) localStorage.setItem('selectedEndpoint', selected.id);
+				},
+				read: () => {
+					var list = JSON.parse(localStorage.getItem('endpointList') || '[]');
+					let selected = localStorage.getItem('selectedEndpoint');
+					if (!selected && list.length > 0) {
+						selected = list[0].id;
+						localStorage.setItem('selectedEndpoint', selected);
+					}
+					return list.map(item => ({
+						id: item.id,
+						name: item.url.split('//')[1] || item.url,
+						url: item.url,
+						secret: item.secret,
+						default: item.id === selected,
+					}));
+				}
+			}
+		},
+		{
 			name: "Yacd Meta",
-			desc: "由 MetaCubeX 继续维护的 Yet Another Clash Dashboard<br/>最新版本，使用了 AI 技术改进界面",
+			desc: "由 MetaCubeX 继续维护的 Yet Another Clash Dashboard<br/>功能还在完善，使用了 AI 技术负优化，性能问题较大，不建议在低配置设备使用",
 			icon: "logo.png",
 			folder: "dash/MetaCubeX/Yet-Another-Clash-Dashboard",
 			config: {
@@ -127,36 +202,6 @@
 			}
 		},
 		{
-			name: "MetaCubeXD",
-			desc: "Mihomo 官方——MetaCubeX 开发的官方 Web UI<br/>界面动效较多，不建议在低配置设备使用",
-			icon: "pwa-192x192.png",
-			folder: "dash/MetaCubeX/Dashboard",
-			config: {
-				save: (servers) => {
-					var list = servers.map(s => ({ id: s.id, url: s.url, secret: s.secret }));
-					if (!list?.length) list = [{ id: crypto.randomUUID(), url: "http://localhost:9090", secret: "" }];
-					var selected = servers.find(s => s.default) || servers[0];
-					localStorage.setItem('endpointList', JSON.stringify(list));
-					if (selected) localStorage.setItem('selectedEndpoint', selected.id);
-				},
-				read: () => {
-					var list = JSON.parse(localStorage.getItem('endpointList') || '[]');
-					let selected = localStorage.getItem('selectedEndpoint');
-					if (!selected && list.length > 0) {
-						selected = list[0].id;
-						localStorage.setItem('selectedEndpoint', selected);
-					}
-					return list.map(item => ({
-						id: item.id,
-						name: item.url.split('//')[1] || item.url,
-						url: item.url,
-						secret: item.secret,
-						default: item.id === selected,
-					}));
-				}
-			}
-		},
-		{
 			name: "Yacd Meta Koge",
 			desc: "由 KogekiPlay 美化的 Yet Another Clash Dashboard Meta<br/>樱花配色",
 			icon: "logo.png",
@@ -193,7 +238,7 @@
 		},
 		{
 			name: "Yacd",
-			desc: "Yet Another Clash Dashboard 的最后一个版本",
+			desc: "haishanh 的 Yet Another Clash Dashboard 最后一个版本",
 			icon: "yacd-128.png",
 			folder: "dash/haishanh/Yet-Another-Clash-Dashboard",
 			config: {
