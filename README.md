@@ -3,10 +3,12 @@
 
 ## 功能
 包含以下面板：
+- Zashboar
+- [Yacd Meta Classic](https://github.com/hmjz100/Yacd-Meta-Classic)
+- MetaCubeXD
 - Yacd Meta
 - Yacd Meta 0.3.7
-- MetaCubeXD
-- Yacd Meta Koge
+- Yacd Meta KogekiPlay
 - Yacd
 
 支持智能检测界面是否运行于外部控制的服务器，自动添加同步服务器配置。  
